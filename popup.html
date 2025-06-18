@@ -3,15 +3,76 @@
 <head>
   <title>Set Gemini API Key</title>
   <style>
-    body { font-family: Arial; padding: 10px; }
-    input { width: 100%; padding: 8px; margin-top: 5px; }
-    button { margin-top: 10px; padding: 6px 12px; }
+    body {
+      background: #f4f6fb;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 180px;
+      margin: 0;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+      padding: 24px 28px 20px 28px;
+      min-width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    h3 {
+      margin: 0 0 16px 0;
+      font-weight: 600;
+      color: #2d3748;
+      letter-spacing: 0.5px;
+      font-size: 1.15rem;
+      text-align: center;
+    }
+    label {
+      font-size: 0.97rem;
+      color: #4a5568;
+      margin-bottom: 6px;
+      margin-left: 2px;
+    }
+    input {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-size: 1rem;
+      margin-bottom: 14px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    input:focus {
+      border: 1.5px solid #6366f1;
+      background: #f0f4ff;
+    }
+    button {
+      background: linear-gradient(90deg, #6366f1 60%, #60a5fa 100%);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 0;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, box-shadow 0.2s;
+      box-shadow: 0 2px 8px rgba(99,102,241,0.08);
+    }
+    button:hover {
+      background: linear-gradient(90deg, #4f46e5 60%, #2563eb 100%);
+    }
   </style>
 </head>
 <body>
-  <h3>Enter Gemini API Key</h3>
-  <input type="text" id="api-key" placeholder="AIza...">
-  <button id="save">Save</button>
+  <div class="card">
+    <h3>Enter Gemini API Key</h3>
+    <label for="api-key">API Key</label>
+    <input type="text" id="api-key" placeholder="AIza...">
+    <button id="save">Save</button>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>
