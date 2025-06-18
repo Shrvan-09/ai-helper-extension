@@ -1,4 +1,4 @@
-# !(image.png) AI Helper Chrome Extension
+# 🤖 AI Helper Chrome Extension
 
 A Chrome extension that integrates AI assistance into problem-solving platforms like **Algozenith (maang.in)**. It adds an "AI Help" button to each problem page, allowing users to get context-aware guidance through a chatbot interface.
 
