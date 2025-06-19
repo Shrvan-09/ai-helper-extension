@@ -26,13 +26,13 @@ git clone https://github.com/Shrvan-09/ai-helper-extension.git
 cd ai-helper-extension
 ```
 
-2. Get Your Gemini API Key
-
+### 2. Get Your Gemini API Key
+```
 Visit: https://aistudio.google.com/app/apikey
-
+```
 Copy your API key (looks like AIza...)
 
-3. Load the Extension in Chrome
+### 3. Load the Extension in Chrome
 
 Open Chrome and go to chrome://extensions
 
@@ -42,7 +42,7 @@ Click “Load unpacked”
 
 Select the unzipped project folder
 
-4. Set the Gemini API Key
+### 4. Set the Gemini API Key
 
 Click the extension icon in the toolbar.
 
@@ -50,7 +50,7 @@ Enter your Gemini API key.
 
 Click Save.
 
-5. Use It on maang.in
+### 5. Use It on maang.in
 
 Open any coding problem on maang.in
 
