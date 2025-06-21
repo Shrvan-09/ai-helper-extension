@@ -54,7 +54,7 @@ Click Save.
 
 Open any coding problem on maang.in
 
-You’ll see a 🧠 AI Help button in the bottom-right.
+You’ll see a 🧠 AI Help button in the top-left.
 
 Click to open the chat
 
