@@ -5,7 +5,6 @@ chrome.storage.sync.get(["gemini_api_key"], (result) => {
     console.log("Gemini API key not set.");
     return;
   }
-
   injectAIButton(result.gemini_api_key);
 });
 
@@ -14,63 +13,184 @@ let chatboxRef = null; // Store reference to chatbox
 function injectAIButton(apiKey) {
   if (document.getElementById("ai-help-btn")) return;
 
+  // Try to find the nav/tab bar containing "Description", "Hints", etc.
+  const navBar = document.querySelector('.css-1p8v0p7, .css-1k2j1b1, .problem-header, .coding_header__Q8QwK, .header, .css-1k2j1b1, .MuiTabs-flexContainer');
+  if (navBar) {
+    // Insert AI Help button as a tab-like button
+    const aiTabBtn = document.createElement("button");
+    aiTabBtn.id = "ai-help-btn";
+    aiTabBtn.innerHTML = `<span style="display:inline-flex;align-items:center;gap:6px;"><span class="btn-icon">🧠</span> <span class="btn-text">AI Help</span></span>`;
+    aiTabBtn.type = "button";
+    aiTabBtn.style.cssText = `
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 500;
+      padding: 0 18px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      cursor: pointer;
+      border-radius: 8px;
+      margin-left: 8px;
+      opacity: 0.85;
+      transition: background 0.2s, opacity 0.2s;
+      outline: none;
+    `;
+    aiTabBtn.addEventListener('mouseenter', () => {
+      aiTabBtn.style.background = '#23293a'; // matches hover of nav bar
+      aiTabBtn.style.opacity = '1';
+    });
+    aiTabBtn.addEventListener('mouseleave', () => {
+      aiTabBtn.style.background = 'transparent';
+      aiTabBtn.style.opacity = '0.85';
+    });
+    aiTabBtn.addEventListener("click", () => {
+      toggleChatboxFull(apiKey);
+    });
+
+    navBar.appendChild(aiTabBtn);
+    return;
+  }
+
+  // Fallback: insert after Doubt Forum button as before
+  const doubtForumBtn = document.querySelector('button, a, .doubt-forum-btn, [href*="doubt"]');
+  if (doubtForumBtn) {
+    const aiBtn = createAIButton(apiKey);
+    doubtForumBtn.parentNode.insertBefore(aiBtn, doubtForumBtn.nextSibling);
+  } else {
+    document.body.appendChild(createAIButton(apiKey));
+  }
+}
+
+function createAIButton(apiKey) {
   const button = document.createElement("button");
   button.id = "ai-help-btn";
-  button.innerHTML = `
-    <span class="btn-icon">🧠</span>
-    <span class="btn-text">AI Help</span>
-  `;
+  button.innerHTML = `<span class="btn-icon">🧠</span> <span class="btn-text">AI Help</span>`;
+  button.type = "button";
+  // Match the style of other top buttons (adjust selectors as needed)
   button.style.cssText = `
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 12px 18px;
+    margin-left: 12px;
+    padding: 8px 18px;
     background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     color: white;
     border: none;
-    border-radius: 12px;
+    border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
-    z-index: 1000;
-    user-select: none;
+    font-size: 1rem;
     display: flex;
     align-items: center;
     gap: 8px;
-    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.3);
-    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-    font-size: 0.95rem;
-    min-width: 120px;
-    justify-content: center;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
+    transition: all 0.2s;
+    height: 40px;
   `;
 
-  // Add hover effects
   button.addEventListener('mouseenter', () => {
-    button.style.transform = 'translateY(-2px) scale(1.05)';
-    button.style.boxShadow = '0 8px 24px rgba(99, 102, 241, 0.4)';
     button.style.background = 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)';
   });
-
   button.addEventListener('mouseleave', () => {
-    button.style.transform = 'translateY(0) scale(1)';
-    button.style.boxShadow = '0 4px 16px rgba(99, 102, 241, 0.3)';
     button.style.background = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)';
   });
 
   button.addEventListener("click", () => {
-    // Add click animation
-    button.style.transform = 'translateY(0) scale(0.95)';
-    setTimeout(() => {
-      button.style.transform = 'translateY(0) scale(1)';
-    }, 150);
-    
-    toggleChatbox(apiKey);
+    toggleChatboxFull(apiKey);
   });
-  
-  document.body.appendChild(button);
+
+  return button;
+}
+
+// Cover the area below the top buttons
+function toggleChatboxFull(apiKey) {
+  const existingBox = document.getElementById("ai-chatbox");
+  if (existingBox) {
+    existingBox.remove();
+    chatboxRef = null;
+    return;
+  }
+
+  // Find the top bar (where the buttons are)
+  const topBar = document.querySelector('.css-1p8v0p7, .css-1k2j1b1, .problem-header, .coding_header__Q8QwK, .header, .css-1k2j1b1'); // adjust selector as needed
+  let topBarRect = { bottom: 60 }; // fallback
+  if (topBar) topBarRect = topBar.getBoundingClientRect();
+
+  const chatbox = document.createElement("div");
+  chatbox.id = "ai-chatbox";
+  chatbox.innerHTML = `
+    <div class="ai-chatbox-container" style="height:100%;display:flex;flex-direction:column;">
+      <div class="ai-chatbox-header" style="display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:#6366f1;color:white;">
+        <span style="font-size:1.1rem;font-weight:600;">AI Chat</span>
+        <div>
+          <button id="export-chat-btn" title="Export Chat History" style="margin-right:8px;">📄</button>
+          <button id="delete-history-btn" title="Clear Chat History">🗑️</button>
+          <button id="close-ai-chatbox" title="Close" style="margin-left:12px;font-size:1.2rem;background:none;border:none;color:white;cursor:pointer;">✖</button>
+        </div>
+      </div>
+      <div id="chat-log" class="chat-log" style="flex:1;overflow-y:auto;padding:16px;background:#f8fafc;"></div>
+      <div class="ai-chatbox-footer" style="display:flex;gap:8px;padding:12px 20px;background:#eef2ff;">
+        <textarea id="ai-user-input" placeholder="Ask me anything..." style="flex:1;resize:none;height:40px;padding:8px;border-radius:6px;border:1px solid #c7d2fe;"></textarea>
+        <button id="send-msg" style="background:#6366f1;color:white;border:none;border-radius:6px;padding:0 18px;font-weight:600;cursor:pointer;">Send</button>
+      </div>
+    </div>
+  `;
+
+  // Position and size: cover area below the top bar
+  chatbox.style.position = 'fixed';
+  chatbox.style.left = '0';
+  chatbox.style.right = '0';
+  chatbox.style.top = (topBarRect.bottom + window.scrollY) + 'px';
+  chatbox.style.bottom = '0';
+  chatbox.style.zIndex = 2001;
+  chatbox.style.background = 'rgba(0,0,0,0.08)';
+  chatbox.style.boxShadow = '0 8px 32px rgba(99,102,241,0.15)';
+  chatbox.style.display = 'flex';
+  chatbox.style.flexDirection = 'column';
+
+  document.body.appendChild(chatbox);
+  chatboxRef = chatbox;
+
+  // Smooth entrance animation
+  chatbox.style.opacity = '0';
+  chatbox.style.transform = 'translateY(20px) scale(0.98)';
+  setTimeout(() => {
+    chatbox.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
+    chatbox.style.opacity = '1';
+    chatbox.style.transform = 'translateY(0) scale(1)';
+  }, 10);
+
+  restoreChatHistory();
+
+  document.getElementById("export-chat-btn").addEventListener("click", () => {
+    exportChatHistory();
+  });
+  document.getElementById("delete-history-btn").addEventListener("click", () => {
+    if (confirm("Are you sure you want to clear the chat history for this problem?")) {
+      clearCurrentProblemHistory();
+      const chatLog = document.getElementById("chat-log");
+      chatLog.innerHTML = "";
+    }
+  });
+  document.getElementById("close-ai-chatbox").addEventListener("click", () => {
+    chatbox.remove();
+    chatboxRef = null;
+  });
+
+  document.getElementById("send-msg").addEventListener("click", async () => {
+    await handleUserInput(apiKey);
+  });
+  document.getElementById("ai-user-input").addEventListener("keydown", async (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      await handleUserInput(apiKey);
+    }
+  });
 }
 
 function toggleChatbox(apiKey) {
   const existingBox = document.getElementById("ai-chatbox");
+  const aiButton = document.getElementById("ai-help-btn");
   if (existingBox) {
     existingBox.remove();
     chatboxRef = null;
@@ -99,50 +219,45 @@ function toggleChatbox(apiKey) {
   `;
 
   // Get AI button position and dimensions
-  const aiButton = document.getElementById("ai-help-btn");
   const buttonRect = aiButton.getBoundingClientRect();
-  
-  // Chat window dimensions
   const chatboxWidth = 380;
-  const chatboxHeight = 520;
+  let chatboxHeight = 520;
   const gap = 12;
-  
-  // Calculate optimal position with screen boundaries
-  let chatLeft, chatBottom;
-  
-  // Position chatbox to the left of the button, aligned to its right edge
-  chatLeft = buttonRect.right - chatboxWidth;
-  chatBottom = window.innerHeight - buttonRect.top + gap;
-  
-  // Ensure chatbox doesn't go off the left edge
-  if (chatLeft < 10) {
-    chatLeft = 10;
-  }
-  
-  // Ensure chatbox doesn't go off the right edge
-  if (chatLeft + chatboxWidth > window.innerWidth - 10) {
+
+  // Center chatbox above the button
+  let chatLeft = buttonRect.left + (buttonRect.width / 2) - (chatboxWidth / 2);
+  let chatTop = buttonRect.top - chatboxHeight - gap;
+
+  // Ensure chatbox stays within viewport horizontally
+  if (chatLeft < 10) chatLeft = 10;
+  if (chatLeft + chatboxWidth > window.innerWidth - 10)
     chatLeft = window.innerWidth - chatboxWidth - 10;
-  }
-  
-  // Ensure chatbox doesn't go off the top edge
-  if (buttonRect.top - chatboxHeight - gap < 10) {
-    chatBottom = window.innerHeight - buttonRect.bottom - gap;
+
+  // If not enough space above, adjust height and top
+  if (chatTop < 10) {
+    const availableHeight = buttonRect.top - gap - 10;
+    if (availableHeight >= 300) {
+      chatboxHeight = availableHeight;
+      chatTop = 10;
+    } else {
+      chatboxHeight = 300;
+      chatTop = 10;
+    }
   }
 
   chatbox.style.position = 'fixed';
   chatbox.style.left = chatLeft + 'px';
-  chatbox.style.bottom = chatBottom + 'px';
-  chatbox.style.zIndex = 1001;
+  chatbox.style.top = chatTop + 'px';
+  chatbox.style.zIndex = 2001;
   chatbox.style.width = chatboxWidth + 'px';
   chatbox.style.height = chatboxHeight + 'px';
 
   document.body.appendChild(chatbox);
   chatboxRef = chatbox;
 
-  // Add smooth entrance animation
+  // Smooth entrance animation
   chatbox.style.opacity = '0';
   chatbox.style.transform = 'translateY(20px) scale(0.95)';
-  
   setTimeout(() => {
     chatbox.style.transition = 'all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)';
     chatbox.style.opacity = '1';
@@ -151,12 +266,10 @@ function toggleChatbox(apiKey) {
 
   restoreChatHistory();
 
-  // Add export chat event listener
   document.getElementById("export-chat-btn").addEventListener("click", () => {
     exportChatHistory();
   });
 
-  // Delete history event listener
   document.getElementById("delete-history-btn").addEventListener("click", () => {
     if (confirm("Are you sure you want to clear the chat history for this problem?")) {
       clearCurrentProblemHistory();
@@ -165,10 +278,9 @@ function toggleChatbox(apiKey) {
     }
   });
 
-  // Enhanced corner resize grip logic with boundary constraints
+  // Resize logic
   const grip = chatbox.querySelector('.resize-grip');
-  let resizing = false, startX, startY, startWidth, startHeight, startLeft, startBottom;
-  
+  let resizing = false, startX, startY, startWidth, startHeight, startLeft, startTop;
   grip.addEventListener('mousedown', function(e) {
     e.preventDefault();
     resizing = true;
@@ -178,27 +290,24 @@ function toggleChatbox(apiKey) {
     startWidth = rect.width;
     startHeight = rect.height;
     startLeft = rect.left;
-    startBottom = window.innerHeight - rect.bottom;
+    startTop = rect.top;
     document.body.style.userSelect = 'none';
     grip.style.background = 'rgba(99, 102, 241, 0.3)';
   });
 
-  // Enhanced top resize handle logic with boundary constraints
   const topHandle = chatbox.querySelector('.top-resize-handle');
-  let topResizing = false, startTopY, startTopHeight, startTopBottom;
-  
+  let topResizing = false, startTopY, startTopHeight, startTopTop;
   topHandle.addEventListener('mousedown', function(e) {
     e.preventDefault();
     topResizing = true;
     startTopY = e.clientY;
     const rect = chatbox.getBoundingClientRect();
     startTopHeight = rect.height;
-    startTopBottom = window.innerHeight - rect.bottom;
+    startTopTop = rect.top;
     document.body.style.userSelect = 'none';
     topHandle.style.background = 'rgba(99, 102, 241, 0.5)';
   });
 
-  // Enhanced mousemove with boundary checking
   document.addEventListener('mousemove', function(e) {
     if (resizing) {
       const deltaX = e.clientX - startX;
@@ -213,7 +322,7 @@ function toggleChatbox(apiKey) {
       const minLeft = 10;
       const maxLeft = window.innerWidth - newWidth - 10;
       const maxWidth = window.innerWidth - startLeft - 10;
-      const maxHeight = window.innerHeight - startBottom - 10;
+      const maxHeight = window.innerHeight - startTop - 10;
       
       // Apply constraints
       if (newLeft < minLeft) {
@@ -241,17 +350,18 @@ function toggleChatbox(apiKey) {
       let newHeight = Math.max(350, startTopHeight - deltaY);
       
       // Constrain height to screen
-      const maxHeight = window.innerHeight - startTopBottom - 20;
+      const maxHeight = window.innerHeight - startTopTop - 20;
       if (newHeight > maxHeight) {
         newHeight = maxHeight;
       }
       
       // Check if new height would push window above screen
-      const currentBottom = window.innerHeight - startTopBottom;
-      const newTop = currentBottom - newHeight;
+      const currentTop = startTop;
+      const newTop = currentTop + startTopHeight - newHeight;
       
       if (newTop >= 10) {
         chatbox.style.height = newHeight + 'px';
+        chatbox.style.top = newTop + 'px';
       }
     }
   });
@@ -924,6 +1034,8 @@ RESPONSE RULES:
 - Always provide COMPLETE, EXECUTABLE code
 - Include complexity analysis
 - Add comments explaining the approach
+- If any question is off-topic, respond with:
+"I can only help with the current problem. Please ask questions related to this specific coding problem."
 
 USER QUESTION: ${userText}
 
@@ -1007,6 +1119,12 @@ function clearCurrentProblemHistory() {
 
 // Export chat history function
 function exportChatHistory() {
+  //close the chatbox if open
+  const chatbox = document.getElementById("ai-chatbox");
+  if (chatbox) {
+    chatbox.style.display = "none";
+  }
+  // Get chat log and messages
   const chatLog = document.getElementById("chat-log");
   if (!chatLog) return;
 
@@ -1179,6 +1297,13 @@ function downloadChatHistory(messages, problemTitle, currentTime, format) {
 
   // Show success message
   showExportSuccess(filename);
+
+  // After export, close the chat window if it exists
+  const chatbox = document.getElementById("ai-chatbox");
+  if (chatbox) {
+    chatbox.remove();
+    chatboxRef = null;
+  }
 }
 
 // Format as plain text
